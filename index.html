@@ -208,6 +208,144 @@ section { padding: 100px 0; }
     cursor: default; /* Возвращаем курсор по умолчанию для контента */
 }
 
+    /* МОДАЛЬНОЕ ОКНО ДЛЯ ГАЛЕРЕИ */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 22, 40, 0.95);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    cursor: pointer;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-img {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    cursor: default;
+}
+
+.modal-close {
+    position: fixed;
+    top: 20px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 2001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    background: rgba(255, 107, 26, 0.8);
+    transform: rotate(90deg);
+    border-color: var(--accent);
+}
+
+.modal-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 2001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-weight: 300;
+}
+
+.modal-nav:hover {
+    background: rgba(255, 107, 26, 0.7);
+    border-color: var(--accent);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.modal-prev {
+    left: 20px;
+}
+
+.modal-next {
+    right: 20px;
+}
+
+.modal-counter {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 2001;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Адаптивность для модалки */
+@media (max-width: 768px) {
+    .modal-img {
+        max-width: 95vw;
+        max-height: 75vh;
+    }
+    .modal-close {
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+    }
+    .modal-nav {
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+    }
+    .modal-prev {
+        left: 8px;
+    }
+    .modal-next {
+        right: 8px;
+    }
+    .modal-counter {
+        bottom: 16px;
+        font-size: 12px;
+        padding: 6px 16px;
+    }
+}
+
+
 /* Стили для iframe */
 #googleFormIframe {
     flex-grow: 1; /* iFrame займет все доступное пространство в modal-content-wrapper */
@@ -806,7 +944,10 @@ footer { background: var(--dark); color: white; padding: 60px 0 30px; }
 </footer>
 <div class="modal" id="photoModal">
     <button class="modal-close">✕</button>
+    <button class="modal-nav modal-prev">‹</button>
+    <button class="modal-nav modal-next">›</button>
     <img class="modal-img" id="modalImg" src="" alt="Натяжной потолок">
+    <div class="modal-counter" id="modalCounter">1 / 6</div>
 </div>
     <!-- Модальное окно для формы -->
     <div class="modal" id="formModal">
@@ -818,21 +959,107 @@ footer { background: var(--dark); color: white; padding: 60px 0 30px; }
         </div>
     </div>
 <script>
-// ========================================
-// ГАЛЕРЕЯ
+/// ========================================
+// ГАЛЕРЕЯ С ЛИСТАНИЕМ
 // ========================================
 const galleryItems = document.querySelectorAll('.gallery-item');
 const modal = document.getElementById('photoModal');
 const modalImg = document.getElementById('modalImg');
+const modalCounter = document.getElementById('modalCounter');
+const prevBtn = document.querySelector('.modal-prev');
+const nextBtn = document.querySelector('.modal-next');
+const closeBtn = document.querySelector('.modal-close');
+
+let currentIndex = 0;
+let imagesUrls = [];
+
+// Собираем все URL из data-full-img
 galleryItems.forEach(item => {
+    const url = item.dataset.fullImg;
+    if (url) {
+        imagesUrls.push(url);
+    }
+});
+
+// Открытие модалки по клику на фото
+galleryItems.forEach((item, index) => {
     item.addEventListener('click', () => {
-        const fullImgUrl = item.dataset.fullImg; // Получаем URL из data-full-img
-        modalImg.src = fullImgUrl;
-        modal.classList.add('active');
+        currentIndex = index;
+        openGallery(currentIndex);
     });
 });
-modal.addEventListener('click', () => {
+
+function openGallery(index) {
+    if (imagesUrls.length === 0) return;
+    modalImg.src = imagesUrls[index];
+    updateCounter(index);
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Блокируем скролл страницы
+}
+
+function updateCounter(index) {
+    modalCounter.textContent = `${index + 1} / ${imagesUrls.length}`;
+}
+
+// Переключение на предыдущее фото
+function prevImage() {
+    currentIndex = (currentIndex - 1 + imagesUrls.length) % imagesUrls.length;
+    modalImg.src = imagesUrls[currentIndex];
+    updateCounter(currentIndex);
+}
+
+// Переключение на следующее фото
+function nextImage() {
+    currentIndex = (currentIndex + 1) % imagesUrls.length;
+    modalImg.src = imagesUrls[currentIndex];
+    updateCounter(currentIndex);
+}
+
+// Закрытие модалки
+function closeGallery() {
     modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// События для кнопок
+prevBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    prevImage();
+});
+
+nextBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    nextImage();
+});
+
+closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeGallery();
+});
+
+// Закрытие по клику на фон
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        closeGallery();
+    }
+});
+
+// Закрытие по клавише ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('active')) {
+        closeGallery();
+    }
+    if (e.key === 'ArrowLeft' && modal.classList.contains('active')) {
+        prevImage();
+    }
+    if (e.key === 'ArrowRight' && modal.classList.contains('active')) {
+        nextImage();
+    }
+});
+
+// Останавливаем всплытие кликов по изображению (чтобы не закрывалось при клике на фото)
+modalImg.addEventListener('click', (e) => {
+    e.stopPropagation();
 });
 
 // ========================================
