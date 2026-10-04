@@ -161,7 +161,13 @@ section { padding: 100px 0; }
     transition: transform 0.4s, box-shadow 0.4s;
 }
 .gallery-item:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(10, 22, 40, 0.2); }
-.gallery-img { width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform 0.6s; }
+.gallery-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s;
+}
 .gallery-item:hover .gallery-img { transform: scale(1.1); }
 .gallery-overlay {
     position: absolute; inset: 0; background: rgba(10, 22, 40, 0);
@@ -791,35 +797,111 @@ footer { background: var(--dark); color: white; padding: 60px 0 30px; }
         <div class="gallery-grid">
             <!-- Ваши собственные картинки -->
 
-            <div class="gallery-item" data-full-img="1.jpeg">
-                <div class="gallery-img" style="background-image: url('0.jpeg')"></div>
-                <div class="gallery-overlay"><div class="gallery-zoom">🔍</div></div>
-            </div>
+           <div class="gallery-item" data-full-img="0.webp">
+             <img 
+              class="gallery-img"
+              src="0.webp"
+              alt="Натяжной потолок"
+              loading="lazy"
+              decoding="async"
+              width="400"
+              height="280"
+             >
+         <div class="gallery-overlay">
+        <div class="gallery-zoom">🔍</div>
+       </div>
+      </div>
 
-            <div class="gallery-item" data-full-img="2.jpeg">
-                <div class="gallery-img" style="background-image: url('1.jpeg')"></div>
-                <div class="gallery-overlay"><div class="gallery-zoom">🔍</div></div>
-            </div>
+            <div class="gallery-item" data-full-img="1.webp">
+             <img 
+              class="gallery-img"
+              src="1.webp"
+              alt="Натяжной потолок"
+              loading="lazy"
+              decoding="async"
+              width="400"
+              height="280"
+             >
+         <div class="gallery-overlay">
+        <div class="gallery-zoom">🔍</div>
+       </div>
+      </div>
 
-            <div class="gallery-item" data-full-img="3.jpeg">
-                <div class="gallery-img" style="background-image: url('2.jpeg')"></div>
-                <div class="gallery-overlay"><div class="gallery-zoom">🔍</div></div>
-            </div>
+            <div class="gallery-item" data-full-img="2.webp">
+             <img 
+              class="gallery-img"
+              src="2.webp"
+              alt="Натяжной потолок"
+              loading="lazy"
+              decoding="async"
+              width="400"
+              height="280"
+             >
+         <div class="gallery-overlay">
+        <div class="gallery-zoom">🔍</div>
+       </div>
+      </div>
 
-            <div class="gallery-item" data-full-img="4.jpeg">
-                <div class="gallery-img" style="background-image: url('3.jpeg')"></div>
-                <div class="gallery-overlay"><div class="gallery-zoom">🔍</div></div>
-            </div>
+            <div class="gallery-item" data-full-img="3.webp">
+             <img 
+              class="gallery-img"
+              src="3.webp"
+              alt="Натяжной потолок"
+              loading="lazy"
+              decoding="async"
+              width="400"
+              height="280"
+             >
+         <div class="gallery-overlay">
+        <div class="gallery-zoom">🔍</div>
+       </div>
+      </div>
 
-            <div class="gallery-item" data-full-img="5.jpeg">
-                <div class="gallery-img" style="background-image: url('4.jpeg')"></div>
-                <div class="gallery-overlay"><div class="gallery-zoom">🔍</div></div>
-            </div>
+            <div class="gallery-item" data-full-img="4.webp">
+             <img 
+              class="gallery-img"
+              src="4.webp"
+              alt="Натяжной потолок"
+              loading="lazy"
+              decoding="async"
+              width="400"
+              height="280"
+             >
+         <div class="gallery-overlay">
+        <div class="gallery-zoom">🔍</div>
+       </div>
+      </div>
 
-            <div class="gallery-item" data-full-img="6.jpeg">
-                <div class="gallery-img" style="background-image: url('5.jpeg')"></div>
-                <div class="gallery-overlay"><div class="gallery-zoom">🔍</div></div>
-            </div>
+            <div class="gallery-item" data-full-img="5.webp">
+             <img 
+              class="gallery-img"
+              src="5.webp"
+              alt="Натяжной потолок"
+              loading="lazy"
+              decoding="async"
+              width="400"
+              height="280"
+             >
+         <div class="gallery-overlay">
+        <div class="gallery-zoom">🔍</div>
+       </div>
+      </div>
+
+         
+         <div class="gallery-item" data-full-img="6.webp">
+             <img 
+              class="gallery-img"
+              src="6.webp"
+              alt="Натяжной потолок"
+              loading="lazy"
+              decoding="async"
+              width="400"
+              height="280"
+             >
+         <div class="gallery-overlay">
+        <div class="gallery-zoom">🔍</div>
+       </div>
+      </div>
 
             <!-- Если у вас есть больше фотографий, продолжайте добавлять их по этому шаблону -->
 
@@ -1237,8 +1319,7 @@ function renderError(message) {
 // Загрузка отзывов из JSON
 async function loadReviews() {
     try {
-        const response = await fetch('reviews.json?v=' + Date.now()); // отключаем кэш
-        if (!response.ok) {
+            const response = await fetch('reviews.json');        if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();
@@ -1252,8 +1333,18 @@ async function loadReviews() {
         renderError('Попробуйте обновить страницу позже.');
     }
 }
-// Запускаем загрузку при готовности страницы
-document.addEventListener('DOMContentLoaded', loadReviews);
+const reviewsSection = document.getElementById('reviews');
+
+const reviewsObserver = new IntersectionObserver((entries, observer) => {
+    if (entries[0].isIntersecting) {
+        loadReviews();
+        observer.disconnect();
+    }
+}, {
+    rootMargin: '300px'
+});
+
+reviewsObserver.observe(reviewsSection);
 </script>
 </body>
 </html>
